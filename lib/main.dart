@@ -1,5 +1,4 @@
 import 'package:everyday/models/goal.dart';
-import 'package:everyday/models/goal.dart';
 import 'package:everyday/providers/goal_provider.dart';
 import 'package:everyday/providers/theme_provider.dart';
 import 'package:everyday/screens/add_edit_goal_screen.dart';
@@ -57,17 +56,12 @@ class MyHomePage extends StatelessWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
   Color _getGoalStatusColor(Goal goal) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    bool isCompletedToday = goal.completions.any((completionDate) =>
-        DateTime(completionDate.year, completionDate.month, completionDate.day) ==
-        today);
-
-    if (isCompletedToday) {
+    if (goal.isCompletedForToday) {
       return Colors.green;
     }
-    // Simple logic for now, can be expanded for yellow status
+    if (goal.wasCompletedInPreviousPeriod) {
+      return Colors.yellow;
+    }
     return Colors.red;
   }
 

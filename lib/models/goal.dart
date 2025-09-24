@@ -100,4 +100,63 @@ class Goal extends HiveObject {
 
     return current;
   }
+
+  // --- New Logic for Status Colors ---
+
+  bool get isCompletedForToday {
+    final now = DateTime.now();
+
+    // Normalize 'now' to midnight for consistent date comparisons
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Get a sorted list of unique completion dates
+    final uniqueCompletionDates = completions.map((c) => DateTime(c.year, c.month, c.day)).toSet().toList();
+
+    if (uniqueCompletionDates.isEmpty) return false;
+
+    switch (frequencyType) {
+      case FrequencyType.daily:
+        return uniqueCompletionDates.contains(today);
+      case FrequencyType.weekly:
+        // Check if there was a completion in the current week (Mon-Sun)
+        final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+        final endOfWeek = startOfWeek.add(const Duration(days: 6));
+        return uniqueCompletionDates.any((d) => !d.isBefore(startOfWeek) && !d.isAfter(endOfWeek));
+      case FrequencyType.daysOfWeek:
+        if (!frequencyValue.contains(today.weekday)) {
+          // Not a required day, so it's not "incomplete" for today
+          return false;
+        }
+        return uniqueCompletionDates.contains(today);
+      case FrequencyType.daysOfMonth:
+        if (!frequencyValue.contains(today.day)) {
+          // Not a required day
+          return false;
+        }
+        return uniqueCompletionDates.contains(today);
+    }
+  }
+
+  bool get wasCompletedInPreviousPeriod {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final uniqueCompletionDates = completions.map((c) => DateTime(c.year, c.month, c.day)).toSet().toList();
+    if (uniqueCompletionDates.isEmpty) return false;
+
+    switch (frequencyType) {
+      case FrequencyType.daily:
+        final yesterday = today.subtract(const Duration(days: 1));
+        return uniqueCompletionDates.contains(yesterday);
+      case FrequencyType.weekly:
+        final startOfLastWeek = today.subtract(Duration(days: today.weekday - 1 + 7));
+        final endOfLastWeek = startOfLastWeek.add(const Duration(days: 6));
+        return uniqueCompletionDates.any((d) => !d.isBefore(startOfLastWeek) && !d.isAfter(endOfLastWeek));
+      default:
+        // For daysOfWeek and daysOfMonth, "previous period" logic is very complex
+        // and can be ambiguous. For now, we return false.
+        // A more robust implementation might be needed in the future.
+        return false;
+    }
+  }
 }

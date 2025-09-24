@@ -16,7 +16,7 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
   final _formKey = GlobalKey<FormState>();
   late String _name;
   late FrequencyType _frequencyType;
-  // TODO: Add state for frequency values
+  List<int> _selectedDays = []; // For daysOfWeek
 
   @override
   void initState() {
@@ -24,6 +24,7 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
     if (widget.goal != null) {
       _name = widget.goal!.name;
       _frequencyType = widget.goal!.frequencyType;
+      _selectedDays = List<int>.from(widget.goal!.frequencyValue);
     } else {
       _name = '';
       _frequencyType = FrequencyType.daily;
@@ -38,15 +39,43 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
     _formKey.currentState!.save();
 
     final goalProvider = Provider.of<GoalProvider>(context, listen: false);
+    List<int> frequencyValue = [];
+    if (_frequencyType == FrequencyType.daysOfWeek) {
+      frequencyValue = _selectedDays;
+    }
+
     if (widget.goal == null) {
       // Add new goal
-      goalProvider.addGoal(_name, _frequencyType);
+      goalProvider.addGoal(_name, _frequencyType, frequencyValue: frequencyValue);
     } else {
       // Update existing goal
-      goalProvider.updateGoal(widget.goal!, _name, _frequencyType);
+      goalProvider.updateGoal(widget.goal!, _name, _frequencyType, frequencyValue: frequencyValue);
     }
 
     Navigator.of(context).pop();
+  }
+
+  Widget _buildDaySelector() {
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return Wrap(
+      spacing: 8.0,
+      children: List<Widget>.generate(7, (int index) {
+        return FilterChip(
+          label: Text(days[index]),
+          selected: _selectedDays.contains(index + 1),
+          onSelected: (bool selected) {
+            setState(() {
+              if (selected) {
+                _selectedDays.add(index + 1);
+              } else {
+                _selectedDays.removeWhere((int day) => day == index + 1);
+              }
+              _selectedDays.sort();
+            });
+          },
+        );
+      }).toList(),
+    );
   }
 
   @override
@@ -96,7 +125,12 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                   });
                 },
               ),
-              // TODO: Add UI for frequency values (e.g., day picker)
+              if (_frequencyType == FrequencyType.daysOfWeek) ...[
+                const SizedBox(height: 16),
+                const Text('Select Days'),
+                _buildDaySelector(),
+              ],
+              // TODO: Add UI for daysOfMonth
             ],
           ),
         ),

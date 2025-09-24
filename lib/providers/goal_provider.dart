@@ -23,7 +23,7 @@ class GoalProvider with ChangeNotifier {
       completions: [],
     );
 
-    final box = await Hive.openBox<Goal>(_boxName);
+    final box = Hive.box<Goal>(_boxName);
     await box.put(newGoal.id, newGoal);
     _goals.add(newGoal);
     notifyListeners();
@@ -32,14 +32,14 @@ class GoalProvider with ChangeNotifier {
   Future<void> toggleGoalCompletion(Goal goal, DateTime date) async {
     final goalIndex = _goals.indexWhere((g) => g.id == goal.id);
     if (goalIndex != -1) {
-      final existingCompletion = goal.completions.any((c) =>
-          c.year == date.year && c.month == date.month && c.day == date.day);
+      final today = DateTime(date.year, date.month, date.day);
+      final existingCompletionIndex = goal.completions.indexWhere((c) =>
+          c.year == today.year && c.month == today.month && c.day == today.day);
 
-      if (existingCompletion) {
-        goal.completions.removeWhere((c) =>
-            c.year == date.year && c.month == date.month && c.day == date.day);
+      if (existingCompletionIndex != -1) {
+        goal.completions.removeAt(existingCompletionIndex);
       } else {
-        goal.completions.add(date);
+        goal.completions.add(today);
       }
 
       await goal.save();
