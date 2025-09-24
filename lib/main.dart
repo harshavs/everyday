@@ -1,145 +1,88 @@
-import 'package:everyday/models/goal.dart';
-import 'package:everyday/providers/goal_provider.dart';
-import 'package:everyday/providers/theme_provider.dart';
-import 'package:everyday/screens/add_edit_goal_screen.dart';
-import 'package:everyday/screens/stats_page.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  final appDocumentDir = await getApplicationDocumentsDirectory();
-  await Hive.initFlutter(appDocumentDir.path);
-
-  Hive.registerAdapter(GoalAdapter());
-  Hive.registerAdapter(FrequencyTypeAdapter());
-
-  await Hive.openBox<Goal>('goals_box');
-
+void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => GoalProvider()..loadGoals()),
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
-      ],
-      child: Consumer<ThemeProvider>(
-        builder: (context, themeProvider, child) {
-          return MaterialApp(
-            title: 'Everyday',
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              brightness: Brightness.light,
-            ),
-            darkTheme: ThemeData(
-              primarySwatch: Colors.blue,
-              brightness: Brightness.dark,
-            ),
-            themeMode: themeProvider.themeMode,
-            home: const MyHomePage(),
-          );
-        },
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
-  Color _getGoalStatusColor(Goal goal) {
-    if (goal.isCompletedForToday) {
-      return Colors.green;
-    }
-    if (goal.wasCompletedInPreviousPeriod) {
-      return Colors.yellow;
-    }
-    return Colors.red;
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    setState(() {
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      _counter++;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your Goals'),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            onPressed: () {
-              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => const StatsPage(),
-              ));
-            },
-          ),
-        ],
+        title: Text(widget.title),
       ),
-      body: Consumer<GoalProvider>(
-        builder: (context, goalProvider, child) {
-          if (goalProvider.goals.isEmpty) {
-            return const Center(
-              child: Text(
-                'No goals yet. Tap the + button to add one!',
-                style: TextStyle(fontSize: 18),
-                textAlign: TextAlign.center,
-              ),
-            );
-          }
-          return ListView.builder(
-            itemCount: goalProvider.goals.length,
-            itemBuilder: (context, index) {
-              final goal = goalProvider.goals[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: _getGoalStatusColor(goal),
-                ),
-                title: Text(goal.name),
-                trailing: IconButton(
-                  icon: const Icon(Icons.check_circle_outline),
-                  onPressed: () {
-                    goalProvider.toggleGoalCompletion(goal, DateTime.now());
-                  },
-                ),
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => AddEditGoalScreen(goal: goal),
-                  ));
-                },
-                onLongPress: () {
-                  // Optional: Add a confirmation dialog before deleting
-                  goalProvider.deleteGoal(goal);
-                },
-              );
-            },
-          );
-        },
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text(
+              'You have pushed the button this many times:',
+            ),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(
-            builder: (context) => const AddEditGoalScreen(),
-          ));
-        },
-        tooltip: 'Add Goal',
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

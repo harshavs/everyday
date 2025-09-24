@@ -1,36 +1,30 @@
-import 'dart:io';
-import 'package:everyday/main.dart';
-import 'package:everyday/models/goal.dart';
+// This is a basic Flutter widget test.
+//
+// To perform an interaction with a widget in your test, use the WidgetTester
+// utility that Flutter provides. For example, you can send tap and scroll
+// gestures. You can also use WidgetTester to find child widgets in the widget
+// tree, read text, and verify that the values of widget properties are correct.
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
+
+import 'package:everyday/main.dart';
 
 void main() {
-
-  setUpAll(() async {
-    TestWidgetsFlutterBinding.ensureInitialized();
-    final tempDir = await Directory.systemTemp.createTemp('hive_test');
-    Hive.init(tempDir.path);
-    Hive.registerAdapter(GoalAdapter());
-    Hive.registerAdapter(FrequencyTypeAdapter());
-    await Hive.openBox<Goal>('goals_box');
-  });
-
-  tearDownAll(() async {
-    await Hive.close();
-  });
-
-  testWidgets('Renders initial screen correctly with no goals', (WidgetTester tester) async {
+  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp());
 
-    // Verify the title is correct.
-    expect(find.text('Your Goals'), findsOneWidget);
+    // Verify that our counter starts at 0.
+    expect(find.text('0'), findsOneWidget);
+    expect(find.text('1'), findsNothing);
 
-    // Verify the "no goals" message is shown.
-    expect(find.text('No goals yet. Tap the + button to add one!'), findsOneWidget);
+    // Tap the '+' icon and trigger a frame.
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
 
-    // Verify the Floating Action Button is present.
-    expect(find.byIcon(Icons.add), findsOneWidget);
+    // Verify that our counter has incremented.
+    expect(find.text('0'), findsNothing);
+    expect(find.text('1'), findsOneWidget);
   });
 }
