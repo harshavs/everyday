@@ -16,7 +16,7 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
   final _formKey = GlobalKey<FormState>();
   late String _name;
   late FrequencyType _frequencyType;
-  List<int> _selectedDays = []; // For daysOfWeek
+  List<int> _selectedValues = []; // For daysOfWeek and daysOfMonth
 
   @override
   void initState() {
@@ -24,7 +24,7 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
     if (widget.goal != null) {
       _name = widget.goal!.name;
       _frequencyType = widget.goal!.frequencyType;
-      _selectedDays = List<int>.from(widget.goal!.frequencyValue);
+      _selectedValues = List<int>.from(widget.goal!.frequencyValue);
     } else {
       _name = '';
       _frequencyType = FrequencyType.daily;
@@ -40,8 +40,8 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
 
     final goalProvider = Provider.of<GoalProvider>(context, listen: false);
     List<int> frequencyValue = [];
-    if (_frequencyType == FrequencyType.daysOfWeek) {
-      frequencyValue = _selectedDays;
+    if (_frequencyType == FrequencyType.daysOfWeek || _frequencyType == FrequencyType.daysOfMonth) {
+      frequencyValue = _selectedValues;
     }
 
     if (widget.goal == null) {
@@ -55,26 +55,68 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
     Navigator.of(context).pop();
   }
 
-  Widget _buildDaySelector() {
+  Widget _buildDayOfWeekSelector() {
     final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return Wrap(
       spacing: 8.0,
       children: List<Widget>.generate(7, (int index) {
         return FilterChip(
           label: Text(days[index]),
-          selected: _selectedDays.contains(index + 1),
+          selected: _selectedValues.contains(index + 1),
           onSelected: (bool selected) {
             setState(() {
               if (selected) {
-                _selectedDays.add(index + 1);
+                _selectedValues.add(index + 1);
               } else {
-                _selectedDays.removeWhere((int day) => day == index + 1);
+                _selectedValues.removeWhere((int day) => day == index + 1);
               }
-              _selectedDays.sort();
+              _selectedValues.sort();
             });
           },
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildDayOfMonthSelector() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7,
+      ),
+      itemCount: 31,
+      itemBuilder: (context, index) {
+        final day = index + 1;
+        return InkWell(
+          onTap: () {
+            setState(() {
+              if (_selectedValues.contains(day)) {
+                _selectedValues.remove(day);
+              } else {
+                _selectedValues.add(day);
+              }
+              _selectedValues.sort();
+            });
+          },
+          child: Container(
+            margin: const EdgeInsets.all(4.0),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _selectedValues.contains(day) ? Theme.of(context).primaryColor : Colors.transparent,
+              border: Border.all(color: Colors.grey),
+            ),
+            child: Center(
+              child: Text(
+                '$day',
+                style: TextStyle(
+                  color: _selectedValues.contains(day) ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -122,15 +164,20 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                 onChanged: (FrequencyType? newValue) {
                   setState(() {
                     _frequencyType = newValue!;
+                    _selectedValues.clear();
                   });
                 },
               ),
               if (_frequencyType == FrequencyType.daysOfWeek) ...[
                 const SizedBox(height: 16),
-                const Text('Select Days'),
-                _buildDaySelector(),
+                const Text('Select Days of the Week'),
+                _buildDayOfWeekSelector(),
               ],
-              // TODO: Add UI for daysOfMonth
+              if (_frequencyType == FrequencyType.daysOfMonth) ...[
+                const SizedBox(height: 16),
+                const Text('Select Days of the Month'),
+                _buildDayOfMonthSelector(),
+              ]
             ],
           ),
         ),
