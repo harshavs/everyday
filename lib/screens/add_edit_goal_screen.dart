@@ -40,7 +40,8 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
 
     final goalProvider = Provider.of<GoalProvider>(context, listen: false);
     List<int> frequencyValue = [];
-    if (_frequencyType == FrequencyType.daysOfWeek) {
+    if (_frequencyType == FrequencyType.daysOfWeek ||
+        _frequencyType == FrequencyType.daysOfMonth) {
       frequencyValue = _selectedDays;
     }
 
@@ -69,6 +70,30 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                 _selectedDays.add(index + 1);
               } else {
                 _selectedDays.removeWhere((int day) => day == index + 1);
+              }
+              _selectedDays.sort();
+            });
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMonthDaySelector() {
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 4.0,
+      children: List<Widget>.generate(31, (int index) {
+        final day = index + 1;
+        return FilterChip(
+          label: Text('$day'),
+          selected: _selectedDays.contains(day),
+          onSelected: (bool selected) {
+            setState(() {
+              if (selected) {
+                _selectedDays.add(day);
+              } else {
+                _selectedDays.removeWhere((int d) => d == day);
               }
               _selectedDays.sort();
             });
@@ -122,6 +147,7 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                 onChanged: (FrequencyType? newValue) {
                   setState(() {
                     _frequencyType = newValue!;
+                    _selectedDays.clear();
                   });
                 },
               ),
@@ -130,7 +156,11 @@ class _AddEditGoalScreenState extends State<AddEditGoalScreen> {
                 const Text('Select Days'),
                 _buildDaySelector(),
               ],
-              // TODO: Add UI for daysOfMonth
+              if (_frequencyType == FrequencyType.daysOfMonth) ...[
+                const SizedBox(height: 16),
+                const Text('Select Days of Month'),
+                _buildMonthDaySelector(),
+              ],
             ],
           ),
         ),

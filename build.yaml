@@ -1,0 +1,11 @@
+targets:
+  $default:
+    builders:
+      hive_generator:
+        options:
+          build_extensions:
+            .dart: .g.dart
+      source_gen|combining_builder:
+        options:
+          build_extensions:
+            .dart: .iconfig.dart
