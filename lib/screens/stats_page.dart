@@ -43,9 +43,18 @@ class StatsPage extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          _buildStatItem('Total', goal.totalCompletions),
-                          _buildStatItem('Current Streak', goal.currentStreak),
-                          _buildStatItem('Longest Streak', goal.longestStreak),
+                          _buildStatItem(
+                              'Total', '${goal.totalCompletions}'),
+                          _buildStatItem(
+                              'Current Streak',
+                              goal.frequencyType == FrequencyType.daily
+                                  ? '${goal.currentStreak}'
+                                  : 'N/A'),
+                          _buildStatItem(
+                              'Longest Streak',
+                              goal.frequencyType == FrequencyType.daily
+                                  ? '${goal.longestStreak}'
+                                  : 'N/A'),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -64,11 +73,11 @@ class StatsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, int value) {
+  Widget _buildStatItem(String label, String value) {
     return Column(
       children: [
         Text(
-          '$value',
+          value,
           style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),

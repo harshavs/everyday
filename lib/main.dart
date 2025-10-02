@@ -94,6 +94,24 @@ class MyHomePage extends StatelessWidget {
               return const SizedBox.shrink();
             },
           ),
+          IconButton(
+            icon: Icon(
+              Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            onPressed: () {
+              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => const StatsPage(),
+              ));
+            },
+          ),
           Consumer<GoogleAuthService>(
             builder: (context, authService, child) {
               if (authService.currentUser == null) {
@@ -123,24 +141,6 @@ class MyHomePage extends StatelessWidget {
                   ),
                 );
               }
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            onPressed: () {
-              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.bar_chart),
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => const StatsPage(),
-              ));
             },
           ),
         ],
