@@ -6,15 +6,15 @@ part 'goal.g.dart';
 enum FrequencyType {
   @HiveField(0)
   daily,
-
   @HiveField(1)
   weekly,
-
   @HiveField(2)
   daysOfWeek,
-
   @HiveField(3)
-  daysOfMonth,
+  daysOfMonth;
+
+  String toJson() => name;
+  static FrequencyType fromJson(String json) => values.byName(json);
 }
 
 @HiveType(typeId: 0)
@@ -41,6 +41,23 @@ class Goal extends HiveObject {
     this.frequencyValue = const [],
     List<DateTime>? completions,
   }) : completions = completions ?? [];
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'frequencyType': frequencyType.toJson(),
+        'frequencyValue': frequencyValue,
+        'completions': completions.map((c) => c.toIso8601String()).toList(),
+      };
+
+  factory Goal.fromJson(Map<String, dynamic> json) => Goal(
+        id: json['id'],
+        name: json['name'],
+        frequencyType: FrequencyType.fromJson(json['frequencyType']),
+        frequencyValue: List<int>.from(json['frequencyValue']),
+        completions: List<DateTime>.from(
+            json['completions'].map((c) => DateTime.parse(c))),
+      );
 
   int get totalCompletions => completions.length;
 

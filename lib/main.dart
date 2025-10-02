@@ -3,6 +3,7 @@ import 'package:everyday/providers/goal_provider.dart';
 import 'package:everyday/providers/theme_provider.dart';
 import 'package:everyday/screens/add_edit_goal_screen.dart';
 import 'package:everyday/screens/stats_page.dart';
+import 'package:everyday/services/google_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
@@ -28,8 +29,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => GoalProvider()..loadGoals()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => GoogleAuthService()),
+        ChangeNotifierProxyProvider<GoogleAuthService, GoalProvider>(
+          create: (_) => GoalProvider(),
+          update: (_, auth, previousGoals) => previousGoals!..setAuth(auth),
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
@@ -71,6 +76,55 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Your Goals'),
         actions: [
+          Consumer<GoalProvider>(
+            builder: (context, goalProvider, child) {
+              if (goalProvider.isSyncing) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.0,
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+          Consumer<GoogleAuthService>(
+            builder: (context, authService, child) {
+              if (authService.currentUser == null) {
+                return IconButton(
+                  icon: const Icon(Icons.login),
+                  onPressed: () => authService.signIn(),
+                  tooltip: 'Sign in with Google',
+                );
+              } else {
+                return PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'logout') {
+                      authService.signOut();
+                    }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      const PopupMenuItem(
+                        value: 'logout',
+                        child: Text('Sign Out'),
+                      ),
+                    ];
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(authService.currentUser!.photoUrl ?? ''),
+                    radius: 16,
+                  ),
+                );
+              }
+            },
+          ),
           IconButton(
             icon: Icon(
               Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark
