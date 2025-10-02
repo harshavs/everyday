@@ -10,7 +10,7 @@ class GoogleDriveService {
   GoogleDriveService(this._authService);
 
   Future<drive.DriveApi?> _getDriveApi() async {
-    final client = await _authService.authenticatedClient;
+    final client = await _authService.getAuthenticatedClient();
     if (client == null) {
       return null;
     }
