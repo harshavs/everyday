@@ -2,6 +2,7 @@ import 'package:everyday/models/goal.dart';
 import 'package:everyday/providers/goal_provider.dart';
 import 'package:everyday/providers/theme_provider.dart';
 import 'package:everyday/screens/add_edit_goal_screen.dart';
+import 'package:everyday/screens/calendar_page.dart';
 import 'package:everyday/screens/stats_page.dart';
 import 'package:everyday/services/google_auth_service.dart';
 import 'package:flutter/material.dart';
@@ -102,6 +103,14 @@ class MyHomePage extends StatelessWidget {
             ),
             onPressed: () {
               Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => const CalendarPage(),
+              ));
             },
           ),
           IconButton(

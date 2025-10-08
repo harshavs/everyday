@@ -93,14 +93,14 @@ class GoalProvider with ChangeNotifier {
   Future<void> toggleGoalCompletion(Goal goal, DateTime date) async {
     final goalIndex = _goals.indexWhere((g) => g.id == goal.id);
     if (goalIndex != -1) {
-      final today = DateTime(date.year, date.month, date.day);
+      final dateOnly = DateTime(date.year, date.month, date.day);
       final existingCompletionIndex = goal.completions.indexWhere((c) =>
-          c.year == today.year && c.month == today.month && c.day == today.day);
+          c.year == dateOnly.year && c.month == dateOnly.month && c.day == dateOnly.day);
 
       if (existingCompletionIndex != -1) {
         goal.completions.removeAt(existingCompletionIndex);
       } else {
-        goal.completions.add(today);
+        goal.completions.add(dateOnly);
       }
 
       await goal.save();
@@ -127,6 +127,19 @@ class GoalProvider with ChangeNotifier {
     await goal.save();
     notifyListeners();
     await _uploadGoals();
+  }
+
+  List<Goal> getActiveGoalsForDate(DateTime date) {
+    return _goals.where((goal) => goal.isActiveForDate(date)).toList();
+  }
+
+  double getCompletionPercentageForDate(DateTime date) {
+    final activeGoals = getActiveGoalsForDate(date);
+    if (activeGoals.isEmpty) {
+      return 0.0;
+    }
+    final completedGoals = activeGoals.where((goal) => goal.isConsideredCompleteForDate(date)).length;
+    return completedGoals / activeGoals.length;
   }
 
   @override

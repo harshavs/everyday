@@ -164,4 +164,37 @@ class Goal extends HiveObject {
         return false;
     }
   }
+
+  bool isActiveForDate(DateTime date) {
+    switch (frequencyType) {
+      case FrequencyType.daily:
+        return true;
+      case FrequencyType.weekly:
+        return true;
+      case FrequencyType.daysOfWeek:
+        return frequencyValue.contains(date.weekday);
+      case FrequencyType.daysOfMonth:
+        return frequencyValue.contains(date.day);
+    }
+  }
+
+  bool isCompletedOnDate(DateTime date) {
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    return completions.any((c) =>
+        c.year == dateOnly.year &&
+        c.month == dateOnly.month &&
+        c.day == dateOnly.day);
+  }
+
+  bool isConsideredCompleteForDate(DateTime date) {
+    if (isCompletedOnDate(date)) return true;
+
+    if (frequencyType == FrequencyType.weekly) {
+      final startOfWeek = date.subtract(Duration(days: date.weekday - 1));
+      final endOfWeek = startOfWeek.add(const Duration(days: 6));
+      return completions.any((c) => !c.isBefore(startOfWeek) && !c.isAfter(endOfWeek));
+    }
+
+    return false;
+  }
 }
