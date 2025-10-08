@@ -61,6 +61,12 @@ class Goal extends HiveObject {
 
   int get totalCompletions => completions.length;
 
+  DateTime? get firstCompletionDate {
+    if (completions.isEmpty) return null;
+    final sortedCompletions = List<DateTime>.from(completions)..sort();
+    return sortedCompletions.first;
+  }
+
   int get longestStreak {
     if (completions.isEmpty || frequencyType != FrequencyType.daily) return 0;
 

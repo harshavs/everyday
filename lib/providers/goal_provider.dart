@@ -134,12 +134,25 @@ class GoalProvider with ChangeNotifier {
   }
 
   double getCompletionPercentageForDate(DateTime date) {
-    final activeGoals = getActiveGoalsForDate(date);
-    if (activeGoals.isEmpty) {
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    final goalsForCalculation = _goals.where((goal) {
+      final firstCompletion = goal.firstCompletionDate;
+      if (firstCompletion == null) {
+        return false; // Never completed, so doesn't count towards percentage.
+      }
+      final firstCompletionDateOnly = DateTime(
+          firstCompletion.year, firstCompletion.month, firstCompletion.day);
+      return goal.isActiveForDate(dateOnly) &&
+          !dateOnly.isBefore(firstCompletionDateOnly);
+    }).toList();
+
+    if (goalsForCalculation.isEmpty) {
       return 0.0;
     }
-    final completedGoals = activeGoals.where((goal) => goal.isConsideredCompleteForDate(date)).length;
-    return completedGoals / activeGoals.length;
+    final completedGoals = goalsForCalculation
+        .where((goal) => goal.isConsideredCompleteForDate(dateOnly))
+        .length;
+    return completedGoals / goalsForCalculation.length;
   }
 
   @override
